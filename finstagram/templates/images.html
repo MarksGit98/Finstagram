@@ -7,8 +7,30 @@
         <div>
             {% for image in images %}
                 <img src="/images/{{image.filepath}}" width="300"/>
-                <h5>Photo ID: {{image.photoID}}<h5>
-                <p>Photo Poster: {{image.photoPoster}}</p>
+                <p style="color:gray">{{image.postingdate}}</p>
+                <h4>Photo ID: {{image.photoID}}</h4>
+                <p style="color:blue; text-decoration: underline">{{image.photoPoster}}</p>
+                {% for person in persons %}
+                    {% if person.username == image.photoPoster %}
+                        <p>{{person.firstName}} {{person.lastName}}</p>
+                    {% endif %}
+                {% endfor %}
+                <h3 style="color:green; text-decoration: underline">Tagged Users</h3>
+                {% for tag in tags %}
+                    {% if image.photoID == tag.photoID %}
+                        {% for person in persons %}
+                            {% if person.username == tag.username %}
+                                <h6>Username: {{tag.username}}, Name: {{person.firstName}} {{person.lastName}}</h6>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                <h3 style="color:red; text-decoration: underline">Liked Users</h3>
+                {% for like in likes %}
+                    {% if image.photoID == like.photoID %}
+                        <h6>Username: {{like.username}}, Rating: {{like.rating}}</h6>
+                    {% endif %}
+                {% endfor %}
             {% endfor %}
         </div>
         <a href="/">Go back</a>

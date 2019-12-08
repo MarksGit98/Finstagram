@@ -5,10 +5,26 @@
     <body>
         <h1>Upload an Image!</h1>
         <div>
-            <form action="/uploadImage" method="post" enctype="multipart/form-data">
-                <input type="file" name="imageToUpload" accept="image/*">
-                <br/>
-                <input type="submit" value="Upload">
+            <form action="/uploadImage" method="post">
+                <input type="file" name="imageToUpload">
+                <br><br>
+                <label for="caption">Caption: </label>
+                <input type="text" name="caption" id="caption">
+                <br><br>
+                <label for="allFollowers">Available for all followers: </label>
+                <input type="checkbox" name="allFollowers" id="allFollowers" value="True">
+                <br><br>
+                <h4> Choose which groups to share this photo with: </h4>
+                <ul>
+                {% for group in groups %}
+                    <li>
+                        <label for="{{group.groupName}}">{{group.groupName}} | {{group.owner_username}}</label>
+                        <input type="checkbox" name="{{group.groupName}} | {{group.owner_username}}">
+                    </li>
+                {% endfor %}
+                </ul>
+                <br>
+                <input type="submit" value="Submit">
             </form>
         </div>
         {% if message %}
@@ -18,3 +34,4 @@
         <a href="/">Go back</a>
     </body>
 </html>
+

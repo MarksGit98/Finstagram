@@ -4,6 +4,29 @@
     </head>
     <body>
         <h1>Hello, {{ username }}!</h1>
+        <h4>Approve or deny the following user's follow requests</h4>
+        <form action="/followAccept" method="post">
+            <ul>
+            {% for request in requests %}
+                <li>
+                <label for="{{request.username_follower}}">{{request.username_follower}}</label>
+                <input type="checkbox" name="{{request.username_follower}}">
+                </li>
+            {% endfor %}
+            </ul>
+            <input type="submit" value="Submit">
+        </form>
+        <h4>Type in the name of a user you want to follow below</h4>
+        <form action="/followUser" method="post">
+            <input type="text" name="username" id="username">
+            <input type="submit" value="Submit">
+        </form>
+        {% if followSuccess == 1 %}
+            <p><b>Follow request sent to {{requestUser}}!></b></p>
+        {% endif %} 
+        {% if followSuccess == 2 %}
+            <p>Can't follow {{requestUser}}. Either you already follow them or they do not exist.</p>
+        {% endif %}
         <div>
             <ul>
                 <li><a href="/images">View Images</a></li>
