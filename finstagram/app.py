@@ -61,7 +61,7 @@ def upload():
 @app.route("/images", methods=["GET"])
 @login_required
 def images():
-    print(session["username"])
+    tagRequestQuery = f"""SELECT username, photoID FROM Tagged WHERE username = '{session["username"]}' AND tagstatus = 0"""
     photoQuery = f"""SELECT DISTINCT *
             FROM Photo AS P JOIN Follow AS F ON
             P.photoPoster = F.username_followed LEFT JOIN SharedWith AS S
@@ -80,6 +80,9 @@ def images():
     tagQuery = f"""SELECT * FROM Tagged WHERE tagstatus = 1"""
     likeQuery = f"""SELECT username, photoID, rating FROM Likes"""
     with connection.cursor() as cursor:
+        cursor.execute(tagRequestQuery)
+        tagRequestData = cursor.fetchall()
+
         cursor.execute(photoQuery)
         image_data = cursor.fetchall()
         try:
@@ -96,7 +99,7 @@ def images():
         cursor.execute(likeQuery)
         like_data = cursor.fetchall()
         #print(like_data)
-    return render_template("images.html", images=image_data, persons=person_data, tags=tag_data, likes=like_data)
+    return render_template("images.html", images=image_data, persons=person_data, tags=tag_data, likes=like_data, tagRequests = tagRequestData)
 
 
 @app.route("/image/<image_name>", methods=["GET"])
@@ -226,11 +229,6 @@ def uploadImage():
 @app.route("/followUser", methods=["POST"])
 @login_required
 def followUser():
-    requestQuery = f"""SELECT username_follower FROM Follow WHERE username_followed = 
-    '{session["username"]}' AND followstatus = 0"""
-    with connection.cursor() as cursor:
-        cursor.execute(requestQuery)
-        requestData = cursor.fetchall()
     followSuccess = 0
     if request.form:
         requestData = request.form
@@ -242,6 +240,12 @@ def followUser():
                 followSuccess = 1
         except:
             followSuccess = 2
+
+    requestQuery = f"""SELECT username_follower FROM Follow WHERE username_followed = 
+    '{session["username"]}' AND followstatus = 0"""
+    with connection.cursor() as cursor:
+        cursor.execute(requestQuery)
+        requestData = cursor.fetchall()
     return render_template("home.html", username=session["username"], followSuccess = followSuccess, requestUser = followedUsername, requests=requestData, requestsUpdated = 0)
 
 @app.route("/followAccept", methods=["POST"])
@@ -260,6 +264,156 @@ def followAccept():
             cursor.execute(removeQuery)
 
     return redirect(url_for("home"))
+
+@app.route("/tagUser", methods=["POST"])
+@login_required
+def tagUser():
+    if request.form:
+        taggedData = request.form
+        for data in taggedData:
+            photoID = data
+            taggedUser = taggedData[data]
+
+        photoQuery = f"""SELECT DISTINCT P.photoID
+            FROM Photo AS P JOIN Follow AS F ON
+            P.photoPoster = F.username_followed LEFT JOIN SharedWith AS S
+            ON S.photoID = P.photoID LEFT JOIN BelongTo AS B ON S.groupName = B.groupName 
+            AND S.groupOwner = B.owner_username
+            WHERE (F.username_follower = '{taggedUser}' AND F.followstatus = 1 AND
+            P.allFollowers = 1)
+            UNION SELECT DISTINCT P.photoID
+            FROM Photo AS P JOIN SharedWith AS S ON
+            P.photoID = S.photoID JOIN BelongTo AS B
+            ON B.groupName = S.groupName AND B.owner_username = S.groupOwner 
+            LEFT JOIN Follow AS F ON P.photoPoster = F.username_followed
+            WHERE B.member_username = '{taggedUser}'"""
+
+        visiblePhotoList = []
+        with connection.cursor() as cursor:
+            cursor.execute(photoQuery)
+            visiblePhotos = cursor.fetchall()
+            for photo in visiblePhotos:
+                visiblePhotoList.append(photo['photoID'])
+
+            tagQuery = "INSERT INTO Tagged (username, photoID, tagStatus) VALUES (%s, %s, %s)"
+            if taggedUser == session["username"]:
+                with connection.cursor() as cursor:
+                    cursor.execute(tagQuery, (session["username"], int(photoID), 1))
+                    message = "You've successfully tagged yourself!"
+            else:
+                if int(photoID) in visiblePhotoList:
+                    with connection.cursor() as cursor:
+                        cursor.execute(tagQuery, (taggedUser, int(photoID), 0))
+                        message=f"""A tag request has been sent to {taggedUser}!"""
+                else:
+                    message="You cannot tag this person as they cannot see this photo."
+
+
+    tagRequestQuery = f"""SELECT username, photoID FROM Tagged WHERE username = '{session["username"]}' AND tagstatus = 0"""
+    photoQuery = f"""SELECT DISTINCT *
+            FROM Photo AS P JOIN Follow AS F ON
+            P.photoPoster = F.username_followed LEFT JOIN SharedWith AS S
+            ON S.photoID = P.photoID LEFT JOIN BelongTo AS B ON S.groupName = B.groupName 
+            AND S.groupOwner = B.owner_username
+            WHERE (F.username_follower = '{session["username"]}' AND F.followstatus = 1 AND
+            P.allFollowers = 1)
+            UNION SELECT DISTINCT *
+            FROM Photo AS P JOIN SharedWith AS S ON
+            P.photoID = S.photoID JOIN BelongTo AS B
+            ON B.groupName = S.groupName AND B.owner_username = S.groupOwner 
+            LEFT JOIN Follow AS F ON P.photoPoster = F.username_followed
+            WHERE B.member_username = '{session["username"]}'
+            ORDER BY postingdate"""
+    personQuery = f"""SELECT * FROM Person"""
+    tagQuery = f"""SELECT * FROM Tagged WHERE tagstatus = 1"""
+    likeQuery = f"""SELECT username, photoID, rating FROM Likes"""
+    with connection.cursor() as cursor:
+        cursor.execute(tagRequestQuery)
+        tagRequestData = cursor.fetchall()
+
+        cursor.execute(photoQuery)
+        image_data = cursor.fetchall()
+        try:
+            image_data.reverse()
+        except:
+            print("No results")
+        #print(image_data)
+        cursor.execute(personQuery)
+        person_data = cursor.fetchall()
+        #print(person_data)
+        cursor.execute(tagQuery)
+        tag_data = cursor.fetchall()
+        #print(tag_data)
+        cursor.execute(likeQuery)
+        like_data = cursor.fetchall()
+        #print(like_data)
+
+    return render_template("images.html", images=image_data, persons=person_data, tags=tag_data, likes=like_data, tagRequests = tagRequestData, message=message)
+
+@app.route("/tagAccept", methods=["POST"])
+@login_required
+def tagAccept():
+    if request.form:
+        requestData = request.form
+        for data in requestData:
+            photoID = int(data.split(' | ')[1])
+            AorD = requestData[data]
+
+        if AorD == "A":
+            query = f"""UPDATE Tagged SET tagstatus=1 WHERE username='{session["username"]}'
+                        AND photoID = {photoID}"""
+            tag_message="Successfully tagged in photo!"
+        elif AorD == "D":
+            query = f"""DELETE FROM Tagged WHERE username='{session["username"]}' AND photoID = {photoID} AND tagstatus = 0"""
+            tag_message="Tag request successfully removed."
+        else:
+            tag_message='Invalid input. Please enter either "A" or "D"'
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+
+
+    tagRequestQuery = f"""SELECT username, photoID FROM Tagged WHERE username = '{session["username"]}' AND tagstatus = 0"""
+    photoQuery = f"""SELECT DISTINCT *
+            FROM Photo AS P JOIN Follow AS F ON
+            P.photoPoster = F.username_followed LEFT JOIN SharedWith AS S
+            ON S.photoID = P.photoID LEFT JOIN BelongTo AS B ON S.groupName = B.groupName 
+            AND S.groupOwner = B.owner_username
+            WHERE (F.username_follower = '{session["username"]}' AND F.followstatus = 1 AND
+            P.allFollowers = 1)
+            UNION SELECT DISTINCT *
+            FROM Photo AS P JOIN SharedWith AS S ON
+            P.photoID = S.photoID JOIN BelongTo AS B
+            ON B.groupName = S.groupName AND B.owner_username = S.groupOwner 
+            LEFT JOIN Follow AS F ON P.photoPoster = F.username_followed
+            WHERE B.member_username = '{session["username"]}'
+            ORDER BY postingdate"""
+    personQuery = f"""SELECT * FROM Person"""
+    tagQuery = f"""SELECT * FROM Tagged WHERE tagstatus = 1"""
+    likeQuery = f"""SELECT username, photoID, rating FROM Likes"""
+    with connection.cursor() as cursor:
+        cursor.execute(tagRequestQuery)
+        tagRequestData = cursor.fetchall()
+
+        cursor.execute(photoQuery)
+        image_data = cursor.fetchall()
+        try:
+            image_data.reverse()
+        except:
+            print("No results")
+        #print(image_data)
+        cursor.execute(personQuery)
+        person_data = cursor.fetchall()
+        #print(person_data)
+        cursor.execute(tagQuery)
+        tag_data = cursor.fetchall()
+        #print(tag_data)
+        cursor.execute(likeQuery)
+        like_data = cursor.fetchall()
+
+    return render_template("images.html", images=image_data, persons=person_data, tags=tag_data, likes=like_data, tagRequests = tagRequestData, tag_message=tag_message)
+
+
 if __name__ == "__main__":
     if not os.path.isdir("images"):
         os.mkdir(IMAGES_DIR)

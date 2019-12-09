@@ -6,7 +6,25 @@
         <h1>Image Gallery</h1>
         <div>
             {% for image in images %}
+                
                 <img src="/images/{{image.filepath}}" width="300"/>
+
+                <form action="/tagAccept" method="post">
+                {% for tagRequest in tagRequests %}
+                    {% if tagRequest.photoID == image.photoID %}
+                    <label for="A/D | {{image.photoID}}">Do you want to be tagged in this photo? Type "A" to Accept tag Request or "D" to decline: </label>
+                    <input type="text" name="A/D | {{image.photoID}}">
+                    <input type="submit" value="Submit">
+                    {% endif %}
+                {% endfor %}
+                </form>
+                <p>{{tag_message}}<p>
+                <form action="/tagUser" method="post">
+                    <label for="{{image.photoID}}">Tag a User </label>
+                    <input type="text" name="{{image.photoID}}">
+                    <input type="submit" value="Submit">
+                </form>
+                <p>{{message}}</p>
                 <p style="color:gray">{{image.postingdate}}</p>
                 <h4>Photo ID: {{image.photoID}}</h4>
                 <p style="color:blue; text-decoration: underline">{{image.photoPoster}}</p>
