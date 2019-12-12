@@ -126,10 +126,10 @@ def loginAuth():
         username = requestData["username"]
         plaintextPassword = requestData["password"]
         hashedPassword = hashlib.sha256(plaintextPassword.encode("utf-8")).hexdigest()
-
+        print(hashedPassword)
         with connection.cursor() as cursor:
             query = "SELECT * FROM Person WHERE username = %s AND password = %s"
-            cursor.execute(query, (username, plaintextPassword))
+            cursor.execute(query, (username, hashedPassword))
         data = cursor.fetchone()
         if data:
             session["username"] = username

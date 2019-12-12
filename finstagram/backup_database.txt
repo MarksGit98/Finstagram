@@ -1,0 +1,326 @@
+-- phpMyAdmin SQL Dump
+-- version 4.9.0.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:8889
+-- Generation Time: Dec 12, 2019 at 04:21 PM
+-- Server version: 5.7.26
+-- PHP Version: 7.3.8
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+--
+-- Database: `Finstagram`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `BelongTo`
+--
+
+CREATE TABLE `BelongTo` (
+  `member_username` varchar(20) NOT NULL,
+  `owner_username` varchar(20) NOT NULL,
+  `groupName` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `BelongTo`
+--
+
+INSERT INTO `BelongTo` (`member_username`, `owner_username`, `groupName`) VALUES
+('abby', 'abby', 'family'),
+('dan', 'abby', 'family'),
+('abby', 'abby', 'roommates'),
+('colieen', 'abby', 'roommates'),
+('bobby', 'bobby', 'roommates'),
+('dan', 'bobby', 'roommates');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Follow`
+--
+
+CREATE TABLE `Follow` (
+  `username_followed` varchar(20) NOT NULL,
+  `username_follower` varchar(20) NOT NULL,
+  `followstatus` tinyint(1) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `Follow`
+--
+
+INSERT INTO `Follow` (`username_followed`, `username_follower`, `followstatus`) VALUES
+('abby', 'bobby', 0),
+('bobby', 'bobby', 1),
+('bobby', 'colieen', 1),
+('bobby', 'mark', 1),
+('mark', 'abby', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Friendgroup`
+--
+
+CREATE TABLE `Friendgroup` (
+  `groupOwner` varchar(20) NOT NULL,
+  `groupName` varchar(20) NOT NULL,
+  `description` varchar(1000) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `Friendgroup`
+--
+
+INSERT INTO `Friendgroup` (`groupOwner`, `groupName`, `description`) VALUES
+('abby', 'family', 'Lee Family'),
+('abby', 'roommates', 'roommates of 221B'),
+('bobby', 'bowlingTeam', 'The Pinhead Larrys'),
+('bobby', 'roommates', '42 Wallaby Way');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Likes`
+--
+
+CREATE TABLE `Likes` (
+  `username` varchar(20) NOT NULL,
+  `photoID` int(11) NOT NULL,
+  `liketime` datetime DEFAULT NULL,
+  `rating` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `Likes`
+--
+
+INSERT INTO `Likes` (`username`, `photoID`, `liketime`, `rating`) VALUES
+('abby', 1, '2019-11-27 00:00:00', 9),
+('abby', 3, '2019-11-27 00:00:00', 7),
+('bobby', 1, '2019-11-27 00:00:00', 6),
+('bobby', 2, '2019-11-27 00:00:00', 5),
+('bobby', 3, '2019-11-27 00:00:00', 5),
+('bobby', 4, '2019-11-27 00:00:00', 5),
+('mark', 1, '2019-11-27 00:00:00', 8),
+('mark', 4, '2019-11-27 00:00:00', 8);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Person`
+--
+
+CREATE TABLE `Person` (
+  `username` varchar(20) NOT NULL,
+  `password` char(64) DEFAULT NULL,
+  `firstName` varchar(20) DEFAULT NULL,
+  `lastName` varchar(20) DEFAULT NULL,
+  `bio` varchar(1000) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `Person`
+--
+
+INSERT INTO `Person` (`username`, `password`, `firstName`, `lastName`, `bio`) VALUES
+('abby', 'pass1', 'Abby', 'Lee', 'Dance Moms Leader'),
+('bobby', 'pass2', 'Bobby', 'Brown', 'Abbys Partner'),
+('colieen', 'pass3', 'Colieen', 'Douglas', 'Dance Mom'),
+('dan', 'pass2', 'Dan', 'Sucio', 'dirty dan'),
+('mark', 'pass1', 'mark', 'bekker', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Photo`
+--
+
+CREATE TABLE `Photo` (
+  `photoID` int(11) NOT NULL,
+  `postingdate` datetime DEFAULT NULL,
+  `filepath` varchar(100) DEFAULT NULL,
+  `allFollowers` tinyint(1) DEFAULT NULL,
+  `caption` varchar(100) DEFAULT NULL,
+  `photoPoster` varchar(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `Photo`
+--
+
+INSERT INTO `Photo` (`photoID`, `postingdate`, `filepath`, `allFollowers`, `caption`, `photoPoster`) VALUES
+(1, '2019-11-27 00:00:00', './roommates_b.jpg', 1, 'roommates', 'bobby'),
+(2, '2019-11-27 00:00:00', './roommates_a.jpg', 1, 'roommates', 'abby'),
+(3, '2019-10-27 00:00:00', './bowling_team.jpg', 1, 'bowlingTeam', 'bobby'),
+(4, '2019-11-27 00:00:00', './family_bora_bora.jpg', 0, 'family vaca', 'abby'),
+(5, '2019-12-08 04:26:31', '/Users/markbekker/Documents/School Stuff/Databases/Finstagram/finstagram/images/flowers.jpg', 1, NULL, 'abby');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `SharedWith`
+--
+
+CREATE TABLE `SharedWith` (
+  `groupOwner` varchar(20) NOT NULL,
+  `groupName` varchar(20) NOT NULL,
+  `photoID` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `SharedWith`
+--
+
+INSERT INTO `SharedWith` (`groupOwner`, `groupName`, `photoID`) VALUES
+('abby', 'roommates', 4),
+('bobby', 'bowlingTeam', 4),
+('abby', 'family', 5),
+('abby', 'roommates', 5);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Tagged`
+--
+
+CREATE TABLE `Tagged` (
+  `username` varchar(20) NOT NULL,
+  `photoID` int(11) NOT NULL,
+  `tagstatus` tinyint(1) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `Tagged`
+--
+
+INSERT INTO `Tagged` (`username`, `photoID`, `tagstatus`) VALUES
+('abby', 1, 1),
+('abby', 3, 1),
+('abby', 5, 1),
+('bobby', 2, 1),
+('bobby', 3, 1);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `BelongTo`
+--
+ALTER TABLE `BelongTo`
+  ADD PRIMARY KEY (`member_username`,`owner_username`,`groupName`),
+  ADD KEY `owner_username` (`owner_username`,`groupName`);
+
+--
+-- Indexes for table `Follow`
+--
+ALTER TABLE `Follow`
+  ADD PRIMARY KEY (`username_followed`,`username_follower`),
+  ADD KEY `username_follower` (`username_follower`);
+
+--
+-- Indexes for table `Friendgroup`
+--
+ALTER TABLE `Friendgroup`
+  ADD PRIMARY KEY (`groupOwner`,`groupName`);
+
+--
+-- Indexes for table `Likes`
+--
+ALTER TABLE `Likes`
+  ADD PRIMARY KEY (`username`,`photoID`),
+  ADD KEY `photoID` (`photoID`);
+
+--
+-- Indexes for table `Person`
+--
+ALTER TABLE `Person`
+  ADD PRIMARY KEY (`username`);
+
+--
+-- Indexes for table `Photo`
+--
+ALTER TABLE `Photo`
+  ADD PRIMARY KEY (`photoID`),
+  ADD KEY `photoPoster` (`photoPoster`);
+
+--
+-- Indexes for table `SharedWith`
+--
+ALTER TABLE `SharedWith`
+  ADD PRIMARY KEY (`groupOwner`,`groupName`,`photoID`),
+  ADD KEY `photoID` (`photoID`);
+
+--
+-- Indexes for table `Tagged`
+--
+ALTER TABLE `Tagged`
+  ADD PRIMARY KEY (`username`,`photoID`),
+  ADD KEY `photoID` (`photoID`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `Photo`
+--
+ALTER TABLE `Photo`
+  MODIFY `photoID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `BelongTo`
+--
+ALTER TABLE `BelongTo`
+  ADD CONSTRAINT `belongto_ibfk_1` FOREIGN KEY (`member_username`) REFERENCES `Person` (`username`),
+  ADD CONSTRAINT `belongto_ibfk_2` FOREIGN KEY (`owner_username`,`groupName`) REFERENCES `Friendgroup` (`groupOwner`, `groupName`);
+
+--
+-- Constraints for table `Follow`
+--
+ALTER TABLE `Follow`
+  ADD CONSTRAINT `follow_ibfk_1` FOREIGN KEY (`username_followed`) REFERENCES `Person` (`username`),
+  ADD CONSTRAINT `follow_ibfk_2` FOREIGN KEY (`username_follower`) REFERENCES `Person` (`username`);
+
+--
+-- Constraints for table `Friendgroup`
+--
+ALTER TABLE `Friendgroup`
+  ADD CONSTRAINT `friendgroup_ibfk_1` FOREIGN KEY (`groupOwner`) REFERENCES `Person` (`username`);
+
+--
+-- Constraints for table `Likes`
+--
+ALTER TABLE `Likes`
+  ADD CONSTRAINT `likes_ibfk_1` FOREIGN KEY (`username`) REFERENCES `Person` (`username`),
+  ADD CONSTRAINT `likes_ibfk_2` FOREIGN KEY (`photoID`) REFERENCES `Photo` (`photoID`);
+
+--
+-- Constraints for table `Photo`
+--
+ALTER TABLE `Photo`
+  ADD CONSTRAINT `photo_ibfk_1` FOREIGN KEY (`photoPoster`) REFERENCES `Person` (`username`);
+
+--
+-- Constraints for table `SharedWith`
+--
+ALTER TABLE `SharedWith`
+  ADD CONSTRAINT `sharedwith_ibfk_1` FOREIGN KEY (`groupOwner`,`groupName`) REFERENCES `Friendgroup` (`groupOwner`, `groupName`),
+  ADD CONSTRAINT `sharedwith_ibfk_2` FOREIGN KEY (`photoID`) REFERENCES `Photo` (`photoID`);
+
+--
+-- Constraints for table `Tagged`
+--
+ALTER TABLE `Tagged`
+  ADD CONSTRAINT `tagged_ibfk_1` FOREIGN KEY (`username`) REFERENCES `Person` (`username`),
+  ADD CONSTRAINT `tagged_ibfk_2` FOREIGN KEY (`photoID`) REFERENCES `Photo` (`photoID`);
