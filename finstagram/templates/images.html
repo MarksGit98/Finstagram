@@ -7,7 +7,7 @@
         <div>
             {% for image in images %}
                 
-                <img src="/images/{{image.filepath}}" width="300"/>
+                <img src="/static/{{image.filepath}}" width="300"/>
 
                 <form action="/tagAccept" method="post">
                 {% for tagRequest in tagRequests %}
